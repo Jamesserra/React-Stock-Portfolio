@@ -30,10 +30,18 @@ var Portfolio = function (_React$Component) {
         shares_owned: 100,
         cost_per_share: 20,
         market_price: 3
-      }]
+      }],
+      form: {
+        name: '',
+        shares_owned: 0,
+        cost_per_share: 0,
+        market_price: 0
+      }
     };
     _this.removeStock = _this.removeStock.bind(_this);
     _this.handleChange = _this.handleChange.bind(_this);
+    _this.handleFormChange = _this.handleFormChange.bind(_this);
+    _this.addStock = _this.addStock.bind(_this);
     return _this;
   }
 
@@ -50,6 +58,35 @@ var Portfolio = function (_React$Component) {
       this.setState({ portfolio: portfolio });
     }
   }, {
+    key: 'handleFormChange',
+    value: function handleFormChange(event) {
+      var _event$target2 = event.target,
+          name = _event$target2.name,
+          value = _event$target2.value;
+      var form = this.state.form;
+
+
+      form[name] = value;
+      this.setState({ form: form });
+    }
+  }, {
+    key: 'addStock',
+    value: function addStock(event) {
+      event.preventDefault();
+      var portfolio = this.state.portfolio.slice();
+      portfolio.push(this.state.form);
+
+      this.setState({
+        portfolio: portfolio,
+        form: {
+          name: '',
+          shares_owned: 0,
+          cost_per_share: 0,
+          market_price: 0
+        }
+      });
+    }
+  }, {
     key: 'removeStock',
     value: function removeStock(index) {
       var portfolio = this.state.portfolio.slice();
@@ -61,7 +98,9 @@ var Portfolio = function (_React$Component) {
     value: function render() {
       var _this2 = this;
 
-      var portfolio = this.state.portfolio;
+      var _state = this.state,
+          portfolio = _state.portfolio,
+          form = _state.form;
 
       var portfolio_market_value = portfolio.reduce(function (sum, stock) {
         return stock.shares_owned * stock.market_price + sum;
@@ -107,7 +146,7 @@ var Portfolio = function (_React$Component) {
                   React.createElement(
                     'th',
                     { scope: 'col' },
-                    'Cost per share ($)'
+                    'Cost per Share ($)'
                   ),
                   React.createElement(
                     'th',
@@ -196,12 +235,25 @@ var Portfolio = function (_React$Component) {
             )
           ),
           React.createElement(
+            'form',
+            { className: 'col-12 mt-2 mb-4', onSubmit: this.addStock },
+            React.createElement('input', { className: 'mx-2', name: 'name', type: 'text', placeholder: 'Name', value: form.name, onChange: this.handleFormChange, required: true }),
+            React.createElement('input', { className: 'mx-2', name: 'shares_owned', type: 'number', placeholder: 'Shares', value: form.shares_owned, onChange: this.handleFormChange }),
+            React.createElement('input', { className: 'mx-2', name: 'cost_per_share', type: 'number', placeholder: 'Cost', value: form.cost_per_share, onChange: this.handleFormChange }),
+            React.createElement('input', { className: 'mx-2', name: 'market_price', type: 'number', placeholder: 'Price', value: form.market_price, onChange: this.handleFormChange }),
+            React.createElement(
+              'button',
+              { className: 'btn mb-1 btn-primary btn-sm' },
+              'Add'
+            )
+          ),
+          React.createElement(
             'div',
             { className: 'col-12 col-md-6' },
             React.createElement(
               'h4',
               { className: 'mb-3' },
-              'Portfolio value: $ ',
+              'Portfolio Value: $ ',
               portfolio_market_value
             )
           ),
@@ -211,7 +263,7 @@ var Portfolio = function (_React$Component) {
             React.createElement(
               'h4',
               { className: 'mb-3' },
-              'Portfolio gain/loss: $ ',
+              'Portfolio Gain/Loss: $ ',
               portfolio_gain_loss
             )
           )
