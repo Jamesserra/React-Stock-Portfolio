@@ -1,3 +1,78 @@
+class AddStockForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      name: '',
+      shares_owned: 0,
+      cost_per_share: 0,
+      market_price: 0,
+    }
+
+    this.handleChange= this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  handleChange(event) {
+    const { name, value } = event.target;
+    this.setState({ [name]: value});
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    const { name, shares_owned, cost_per_share, market_price } = this.state;
+
+    this.props.onSubmit({
+      name,
+      shares_owned,
+      cost_per_share,
+      market_price
+    });
+
+    this.setState({
+      name: '',
+      shares_owned: 0,
+      cost_per_share: 0,
+      market_price: 0,
+    })
+  }
+
+  render() {
+    const { name, shares_owned, cost_per_share, market_price} = this.state;
+    return(
+      <form className="col-12 mt-2 mb-4" onSubmit={this.handleSubmit}>
+        <input className="mx-2" name="name" type="text" placeholder="Name" value={name} onChange={this.handleChange} required />
+            <input className="mx-2" name="shares_owned" type="number" placeholder="Shares" value={shares_owned} onChange={this.handleChange} />
+            <input className="mx-2" name="cost_per_share" type="number" placeholder="Cost" value={cost_per_share} onChange={this.handleChange} />
+            <input className="mx-2" name="market_price" type="number" placeholder="Price" value={market_price} onChange={this.handleChange} />
+            <button className="btn mb-1 btn-primary btn-sm">Add</button>
+      </form>
+    )
+  }
+}
+
+class Stock extends React.Component {
+  render() {
+    const { handleChange, removeStock, stock, index } = this.props;
+    const { name, shares_owned, cost_per_share, market_price } = stock;
+
+    const market_value = shares_owned * market_price;
+    const unrealized_gain_loss = market_value - shares_owned * cost_per_share;
+
+    return(
+      <tr>
+        <td>{name}</td>
+        <td><input onChange={e => this.handleChange(e, index)} type="number" name="shares_owned" value={shares_owned} /></td>
+        <td><input onChange={e => this.handleChange(e, index)} type="number" name="cost_per_share" value={cost_per_share} /></td>
+        <td><input onChange={e => this.handleChange(e, index)} type="number" name="market_price" value={market_price} /></td>
+        <td>{market_value}</td>
+        <td>{unrealized_gain_loss}</td>
+        <td><button className="btn btn-light btn-sm" onClick={() => removeStock(index)}>remove</button></td>
+      </tr>
+    )
+  }
+}
+
+
 class Portfolio extends React.Component {
   constructor(props) {
     super(props);
@@ -29,7 +104,6 @@ class Portfolio extends React.Component {
     };
     this.removeStock = this.removeStock.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.handleFormChange = this.handleFormChange.bind(this);
     this.addStock = this.addStock.bind(this);
   }
 
@@ -41,28 +115,12 @@ class Portfolio extends React.Component {
     this.setState({ portfolio })
   }
 
-  handleFormChange(event) {
-    const { name, value } = event.target;
-    const { form } = this.state;
-
-    form[name] = value;
-    this.setState({ form });
-  }
-
-  addStock(event) {
-    event.preventDefault();
+  addStock(stock) {
+    
     const portfolio = this.state.portfolio.slice();
-    portfolio.push(this.state.form)
+    portfolio.push(stock)
 
-    this.setState({
-      portfolio,
-      form: {
-        name: '',
-        shares_owned: 0,
-        cost_per_share: 0,
-        market_price: 0
-      }
-    });
+    this.setState({ portfolio });
   }
 
   removeStock(index) {
@@ -95,39 +153,13 @@ class Portfolio extends React.Component {
                 </tr>
               </thead>
               <tbody>
-                {portfolio.map((stock, index) => {
-                  const {
-                    name,
-                    shares_owned,
-                    cost_per_share,
-                    market_price,
-                  } = stock;
-
-                  const market_value = shares_owned * market_price;
-                  const unrealized_gain_loss = market_value - shares_owned * cost_per_share;
-
-                  return (
-                    <tr key={index}>
-                      <td>{name}</td>
-                      <td><input onChange={e => this.handleChange(e, index)} type="number" name="shares_owned" value={shares_owned} /></td>
-                      <td><input onChange={e => this.handleChange(e, index)} type="number" name="cost_per_share" value={cost_per_share} /></td>
-                      <td><input onChange={e => this.handleChange(e, index)} type="number" name="market_price" value={market_price} /></td>
-                      <td>{market_value}</td>
-                      <td>{unrealized_gain_loss}</td>
-                      <td><button className="btn btn-light btn-sm" onClick={() => this.removeStock(index)}>remove</button></td>
-                    </tr>
-                  )
-                })}
+                {portfolio.map((stock, index) => (
+                  <Stock key={index} index={index} stock={stock} handleChange={this.handleChange} removeStock={this.removeStock} />
+                ))}
               </tbody>
             </table>
           </div>
-          <form className="col-12 mt-2 mb-4" onSubmit={this.addStock}>
-            <input className="mx-2" name="name" type="text" placeholder="Name" value={form.name} onChange={this.handleFormChange} required />
-            <input className="mx-2" name="shares_owned" type="number" placeholder="Shares" value={form.shares_owned} onChange={this.handleFormChange} />
-            <input className="mx-2" name="cost_per_share" type="number" placeholder="Cost" value={form.cost_per_share} onChange={this.handleFormChange} />
-            <input className="mx-2" name="market_price" type="number" placeholder="Price" value={form.market_price} onChange={this.handleFormChange} />
-            <button className="btn mb-1 btn-primary btn-sm">Add</button>
-          </form>
+          <AddStockForm onSubmit={this.addStock} />
 
           <div className="col-12 col-md-6">
             <h4 className="mb-3">Portfolio Value: $ {portfolio_market_value}</h4>
